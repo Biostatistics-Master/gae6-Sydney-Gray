@@ -1,6 +1,6 @@
 ---
 title: "GAE6: Pea Aphids: multiple comparisons"
-author: "Your Name Here"
+author: Sydney Phillips
 format: 
   html:
     embed-resources: true
@@ -83,7 +83,7 @@ I tested for differences among the un-injected control (Control), the injected b
 
 ## Results:
 
-Infected pea aphids exhibited distinctly larger hue angles and hence greener colors (@tbl-ANOVA, @fig-Aphids). This result supports the researchers' hypothesis that infection may lead to color change.
+Infected pea aphids exhibited distinctly larger hue angles and hence greener colors (@tbl-ANOVA, @fig-Aphids). This result supports the researchers' hypothesis that infection may lead to color change. This idea is also supported via a multiple comparison test, as well as a pairwise Tukey comparison (@tbl-Contrast, @tbl-aphidMeans).
 
 ```{r}
 #| label: tbl-ANOVA
@@ -154,6 +154,67 @@ ggplot(aphids)+
     legend.position = "none"
   )
 
+```
+
+```{r}
+#| label: tbl-Contrast
+#| tbl-cap: "Planned linear comparisson of means" 
+
+aphidMeans <- emmeans(aphidMod, "Treatment")
+
+aphidCont <- tidy(contrast
+                  (aphidMeans, 
+                     method = list(
+                     
+           'L1: Control,uninfected vs infected '    = c( -1,  -1,  2 ),
+            'L2: uninfected vs infected'       = c(  0,  -1,  1 )
+                       
+           ),
+           adjust = "none"
+         ))[,-c(1,3)]
+
+aphidCont$p.value <- format.pval(
+  aphidCont$p.value,
+  digits = 3,
+  eps = 0.001,
+  na.form = ''
+)
+
+kbl(
+  aphidCont,
+  col.names = c(
+    "Contrast",
+    "Estimate",
+    "SE",
+    "df",
+    "t",
+    "P"
+    ),
+  digits = c(0,3,3,0,3,3),
+  align = "r",
+  table.attr = 'data-quarto-disable-processing="true"'
+  ) |>
+  kable_classic()
+
+```
+
+```{r}
+#| label: tbl-aphidMeans
+#| tbl-cap: "Pairwise comparisons of group means: mean differences with Tukey adjusted P-values."
+
+aphidMeans <- emmeans(aphidMod, specs = "Treatment")
+
+
+kbl(
+  pairs(aphidMeans),
+  digits = 4,
+  table.attr = 'data-quarto-disable-processing="true"'
+  ) |>
+  kable_classic(full = FALSE) |>
+  column_spec(
+    column = 1:6,
+    width = "5em"
+  )
 ```
 
 ## References:
